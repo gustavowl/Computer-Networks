@@ -1,6 +1,12 @@
 from socket import *
 import _thread
 
+debug = True
+
+def debug(text):
+	if debug:
+		print(text)
+
 #this function will be responsible for keep listening to the
 #input comming from the client
 def persistent_socket_connection(con_socket):
@@ -9,7 +15,7 @@ def persistent_socket_connection(con_socket):
 
 	#if receivedMessage[0] == "" then connection was closed
 	while receivedMessage[0].decode() != "":
-		print(receivedMessage[0].decode()) #debugging reasons
+		debug(receivedMessage[0].decode())
 		#computes desired algorithm for client
 		answerMessage = receivedMessage[0].decode().upper()
 		#send it back to client
