@@ -1,4 +1,13 @@
 from socket import *
+import _thread
+
+def first_thread():
+	for i in range(100):
+		print("THREAD 1")
+
+def second_thread():
+	for i in range(100):
+		print("\tTHREAD 2")
 
 serverPort = 9001 #socket will listen to port 12112
 serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
@@ -7,6 +16,9 @@ serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
 serverSocket.bind(('', serverPort))
 serverSocket.listen(2)
 print("The server is ready to receive")
+
+_thread.start_new_thread( first_thread, () )
+_thread.start_new_thread( second_thread, () )
 
 #infinite loop (socket will always listen)
 while True:
