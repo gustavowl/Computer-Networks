@@ -1,6 +1,9 @@
 from socket import *
 import _thread
 
+CONST_MANAGE_REQUEST_PORT = 9000
+CONST_ADD_NEW_SERVERS_PORT = 9090
+
 debug = True
 
 def initialize_client_socket(ip, port):
@@ -49,38 +52,32 @@ def persistent_socket_connection(con_socket):
 
 #---------------------------------------------------------------
 
-class StructServer():
-	def __init__(self, ip, port):
-		self.ip = ip
-		self.port = port
-
-#contains the list of servers that are added dynamically.
+#Contains the list of servers that are added dynamically.
+#It is a list of tuples, where the first element, i.e. [0],
+#is the IP address (str) and the second element, i.e. [1].
+#is the port (int)
 #For now, the list only increases. It is not possible
 #to remove a running server, even though connection errors
 #may happen
 serverlist = []
 
 def add_new_server_socket_loop():
-	serverPort = 9090
 	serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP	
-	serverSocket.bind(('', serverPort))
+	serverSocket.bind(('', CONST_ADD_NEW_SERVERS_PORT))
 	serverSocket.listen(1)
 	print("Server Manager is ready to add new servers dynamically")
 	while True:
 		conSocket, addr = serverSocket.accept()
 		message = conSocket.recvfrom(8)
 		serverPort = int(message[0].decode())
-		#TODO: verify if it is OK to add new server, e.g. if the max
-		#number of supported servers has been reached, return FAIL
+		
+		#verifies if socket tuple is already being used
 		conSocket.send("OK".encode()) #says it is OK to add new server
 		
 		#waits for info confirming if the new server is already running
 		message = conSocket.recvfrom(8)
 		#TODO: add server to list instead of just printing info
-		serverlist.append(StructServer(addr[0], serverPort))
-
-		for i in range(len(serverlist)):
-			print(serverlist[i].ip + '\t' + str(serverlist[i].port))
+		serverlist.append((addr[0], serverPort))
 
 _thread.start_new_thread(add_new_server_socket_loop, ())
 
@@ -90,7 +87,7 @@ length = len(serverlist)
 while length == 0:
 	length = len(serverlist)
 
-serverPort = 9000 #socket will listen to port 12112
+serverPort = CONST_MANAGE_REQUEST_PORT #socket will listen to port 12112
 serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
 #configures the serverSocket to keep listening to port 12112
 serverSocket.bind(('', serverPort))

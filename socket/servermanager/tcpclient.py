@@ -1,5 +1,7 @@
 from socket import *
 
+CONST_MANAGE_REQUEST_PORT = 9000
+
 #this will read the server's IP address from a file
 #the file is not uploaded to github. Just create a file
 #with the same name and put the required IP address there
@@ -10,7 +12,7 @@ cont = cont.strip()
 
 #determine sockets parameters (name/ip address and port)
 serverName = cont
-serverPort = 9000
+serverPort = CONST_MANAGE_REQUEST_PORT
 #creates socket
 clntSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
 clntSocket.connect((serverName, serverPort))

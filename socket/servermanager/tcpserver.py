@@ -1,5 +1,7 @@
 from socket import *
 
+CONST_ADD_NEW_SERVERS_PORT = 9090
+
 #socket will listen to port specified by user
 serverPort = int(input("Type port to listen: "))
 
@@ -13,7 +15,7 @@ cont = cont.strip()
 serverName = cont
 #creates socket
 clntSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
-clntSocket.connect((serverName, 9090)) #port used for adding server to servermanager
+clntSocket.connect((serverName, CONST_ADD_NEW_SERVERS_PORT)) #port used for adding server to servermanager
 
 #sends a message to server containing the ip address and port
 #that the new server will work with
