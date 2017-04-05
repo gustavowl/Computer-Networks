@@ -19,7 +19,10 @@ def debug(text):
 
 #this function will be responsible for keep listening to the
 #input comming from the client
-def persistent_socket_connection(con_socket):
+#con_socket receives the connection stablished with the client
+#server_address is a tuple containing the IP address and the port
+#with which the server is working, respectively
+def persistent_socket_connection(con_socket, server_address):
 	#reads message sent from client
 	receivedMessage = conSocket.recvfrom(2112)
 
@@ -30,7 +33,7 @@ def persistent_socket_connection(con_socket):
 		#creates client socket to connect with desired server
 		#TODO: info about IP and port may be stored somewhere
 		#else, i.e. not static
-		client_socket = initialize_client_socket('192.168.0.31', 9009)
+		client_socket = initialize_client_socket(server_address[0], server_address[1])
 		#TODO: treat exception: client_socket = None
 		message = "servermanager says hello"
 		client_socket.send(message.encode()) #server will process request
@@ -111,13 +114,18 @@ serverSocket.bind(('', serverPort))
 serverSocket.listen(1)
 print("The server is ready to receive")
 
+next_server = 0 #used for computing round robin
 #infinite loop (this threads' socket will always listen for new connections)
 while True:
 	#starts TCP connection required by client
 	conSocket, addr = serverSocket.accept()
 
+	#computes which server will proccess the new request (round robin)
+	next_server = (next_server + 1) % len(serverlist)
+
 	#creates thread that will run the connection socket behavior while
 	#the current thread will be responsible for listening to new connections.
 	#The new thread will start running at persistent_socket_connection
 	#function that receives a socket as parameter
-	_thread.start_new_thread(persistent_socket_connection, (conSocket, ))
+	_thread.start_new_thread(persistent_socket_connection, (conSocket, 
+		serverlist[next_server],))
