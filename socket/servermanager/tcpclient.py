@@ -10,7 +10,7 @@ cont = cont.strip()
 
 #determine sockets parameters (name/ip address and port)
 serverName = cont
-serverPort = 9001
+serverPort = 9000
 #creates socket
 clntSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
 clntSocket.connect((serverName, serverPort))
