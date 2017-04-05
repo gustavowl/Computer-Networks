@@ -49,12 +49,52 @@ def persistent_socket_connection(con_socket):
 
 #---------------------------------------------------------------
 
+class StructServer():
+	def __init__(self, ip, port):
+		self.ip = ip
+		self.port = port
+
+#contains the list of servers that are added dynamically.
+#For now, the list only increases. It is not possible
+#to remove a running server, even though connection errors
+#may happen
+serverlist = []
+
+def add_new_server_socket_loop():
+	serverPort = 9090
+	serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP	
+	serverSocket.bind(('', serverPort))
+	serverSocket.listen(1)
+	print("Server Manager is ready to add new servers dynamically")
+	while True:
+		conSocket, addr = serverSocket.accept()
+		message = conSocket.recvfrom(8)
+		serverPort = int(message[0].decode())
+		#TODO: verify if it is OK to add new server, e.g. if the max
+		#number of supported servers has been reached, return FAIL
+		conSocket.send("OK".encode()) #says it is OK to add new server
+		
+		#waits for info confirming if the new server is already running
+		message = conSocket.recvfrom(8)
+		#TODO: add server to list instead of just printing info
+		serverlist.append(StructServer(addr[0], serverPort))
+
+		for i in range(len(serverlist)):
+			print(serverlist[i].ip + '\t' + str(serverlist[i].port))
+
+_thread.start_new_thread(add_new_server_socket_loop, ())
+
+#servermanager needs at least one server to manage (obvious)
+print("Waiting for first server connection")
+length = len(serverlist)
+while length == 0:
+	length = len(serverlist)
+
 serverPort = 9000 #socket will listen to port 12112
 serverSocket = socket(AF_INET, SOCK_STREAM) #IPv4, UDP
-
 #configures the serverSocket to keep listening to port 12112
 serverSocket.bind(('', serverPort))
-serverSocket.listen(2)
+serverSocket.listen(1)
 print("The server is ready to receive")
 
 #infinite loop (this threads' socket will always listen for new connections)
