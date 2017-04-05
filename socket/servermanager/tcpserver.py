@@ -47,4 +47,5 @@ if receivedMessage[0].decode() == "OK":
 		conSocket.send(answerMessage.encode())
 
 #else abort
-print("ERROR: could not create new server")
+print("ERROR: could not create new server. \n" +
+	"ERROR CODE: " + receivedMessage[0].decode())

@@ -15,7 +15,7 @@ def initialize_client_socket(ip, port):
 
 def debug(text):
 	if debug:
-		print(text)
+		print("#DEBUG: " + text)
 
 #this function will be responsible for keep listening to the
 #input comming from the client
@@ -71,13 +71,30 @@ def add_new_server_socket_loop():
 		message = conSocket.recvfrom(8)
 		serverPort = int(message[0].decode())
 		
-		#verifies if socket tuple is already being used
-		conSocket.send("OK".encode()) #says it is OK to add new server
-		
-		#waits for info confirming if the new server is already running
-		message = conSocket.recvfrom(8)
-		#TODO: add server to list instead of just printing info
-		serverlist.append((addr[0], serverPort))
+		#verifies if a reserved port was requested
+		if (serverPort == CONST_ADD_NEW_SERVERS_PORT or
+			serverPort == CONST_MANAGE_REQUEST_PORT):
+			conSocket.send("INV_PORT".encode())
+		else:
+			#verifies if socket tuple is already being used
+			is_tuple_used = False
+			i = 0
+			while i < len(serverlist) and not is_tuple_used:
+				if (serverlist[i][0] == addr[0] and serverlist[i][1] == serverPort):
+					is_tuple_used = True
+				i += 1
+
+			if is_tuple_used:
+				#tuple already registered
+				conSocket.send("INV_TUPL".encode())
+			else:
+				conSocket.send("OK".encode())
+				
+				#waits for info confirming if the new server is already running
+				message = conSocket.recvfrom(8)
+				#TODO: add server to list instead of just printing info
+				serverlist.append((addr[0], serverPort))
+				debug("list of active servers: " + str(serverlist))
 
 _thread.start_new_thread(add_new_server_socket_loop, ())
 
