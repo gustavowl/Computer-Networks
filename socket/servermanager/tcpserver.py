@@ -1,7 +1,7 @@
 from socket import *
 
 CONST_ADD_NEW_SERVERS_PORT = 9090
-CONST_BUFFER_SIZE = 100000
+CONST_BUFFER_SIZE = 200000
 
 #------------------MERGE SORT IMPLEMENTATION---------------------------------------
 #Explanation of algorithm can be found at
@@ -10,7 +10,7 @@ def merge(lst, start, end):
 	start = int(start)
 	end = int(end)
 	cp = lst[start:end]
-	middle = int((start + end) / 2)
+	middle = (start + end) // 2
 	index = start
 	while ( middle > start and end > middle ):
 		if ((cp[0]) < (cp[middle - start] )):
@@ -28,8 +28,8 @@ def merge_sort(lst, start, end):
 	start = int(start)
 	end = int(end)
 	if end - start > 1:
-		merge_sort(lst, start, (start + end) / 2)
-		merge_sort(lst, (start + end) / 2, end)
+		merge_sort(lst, start, (start + end) // 2)
+		merge_sort(lst, (start + end) // 2, end)
 		merge(lst, start, end)
 
 #------------------------------------------------------------------------------------
@@ -53,6 +53,7 @@ clntSocket.connect((serverName, CONST_ADD_NEW_SERVERS_PORT)) #port used for addi
 clntSocket.send(str(serverPort).encode())
 
 receivedMessage = clntSocket.recvfrom(8)
+print(receivedMessage[0].decode())
 
 if receivedMessage[0].decode() == "OK":
 	#then create new server socket
@@ -73,10 +74,14 @@ if receivedMessage[0].decode() == "OK":
 
 		#stores data sent from client and client's adress and port, respectively
 		receivedMessage = conSocket.recvfrom(CONST_BUFFER_SIZE)
+		receivedMessage = receivedMessage[0].decode()
+		print(len(receivedMessage))
+		#print(receivedMessage)
 		#applies changes to received message
-		array = receivedMessage[0].decode().split()
+		array = [int(num) for num in receivedMessage.split()]
 		merge_sort(array, 0, len(array))
-		conSocket.send(str(array).encode())
+		answer = str(array).replace(',', '')
+		conSocket.send(answer[1 : len(answer) - 1].encode())
 
 #else abort
 print("ERROR: could not create new server. \n" +
