@@ -1,7 +1,7 @@
 from socket import *
 import _thread
 
-CONST_MANAGE_REQUEST_PORT = 12114
+CONST_MANAGE_REQUEST_PORT = 12115
 CONST_ADD_NEW_SERVERS_PORT = 9090
 CONST_BUFFER_SIZE = 200000
 
@@ -25,31 +25,51 @@ def debug(text):
 #with which the server is working, respectively
 def persistent_socket_connection(con_socket, server_address):
 	#reads message sent from client
-	receivedMessage = conSocket.recvfrom(CONST_BUFFER_SIZE)
-	receivedMessage = receivedMessage[0].decode()
+	#first message contains size of data being sent
+	test = conSocket.recvfrom(16)
+	debug("test: " + str(test))
+	size = int(test[0].decode())
+	#size = int((conSocket.recvfrom(16))[0].decode())
+	conSocket.send("OK".encode())
+	receivedMessage = (conSocket.recvfrom(size))[0].decode()
 
 	#if receivedMessage[0] == "" then connection was closed
 	while receivedMessage != "":
-		debug("YTYKHH" + str(len(receivedMessage)))
+		debug("YTYKHH" + str(len(receivedMessage.encode())))
 
-		#creates client socket to connect with desired server
-		client_socket = initialize_client_socket(server_address[0], server_address[1])
+		#verifies if needs to wait for more data from client
+		if len(receivedMessage.encode()) == size:
+			#all packets were received
+			#creates client socket to connect with desired server
+			client_socket = initialize_client_socket(server_address[0], 
+				server_address[1])
 
-		#TODO: treat exception: client_socket = None
-		client_socket.send(receivedMessage.encode()) #server will process request
-		answerMessage = client_socket.recvfrom(CONST_BUFFER_SIZE) #waits for server answer
-		answerMessage = answerMessage[0].decode();
-		#debug("Message received from server: " +  answerMessage)
+			#sends size of package to server and waits for permission in order
+			#to start sending packages
+			client_socket.send(str(size).encode())
+			if (client_socket.recvfrom(16))[0].decode() == "OK" :
+				#TODO: treat exception: client_socket = None
+				#server will process request
+				client_socket.send(receivedMessage.encode())
+				#waits for server answer
+				answerMessage = (client_socket.recvfrom(size))[0].decode()
+				#verifies if needs to wait for more packages
+				while len(answerMessage.encode()) < size:
+					answerMessage += (client_socket.recvfrom(size))[0].decode()
+			#debug("Message received from server: " +  answerMessage)
 
-		#close connection between servermanager and server
-		#TODO: ? free server to be used by other sockets ?
-		client_socket.close()
+			#close connection between servermanager and server
+			#TODO: ? free server to be used by other sockets ?
+			client_socket.close()
 
-		#send processed request back to client
-		con_socket.send(answerMessage.encode())
-		#waits for new request or end of connection
-		receivedMessage = con_socket.recvfrom(CONST_BUFFER_SIZE)
-		receivedMessage = receivedMessage[0].decode()
+			#send processed request back to client
+			con_socket.send(answerMessage.encode())
+			#waits for new request or end of connection
+			receivedMessage = con_socket.recvfrom(size)
+			receivedMessage = receivedMessage[0].decode()
+		else:
+			#needs to wait for more data
+			receivedMessage += (conSocket.recvfrom(size))[0].decode()
 	#reference to 1994's World's cup final
 	#it means "It is over"
 	debug("-------------CABOU!!!")

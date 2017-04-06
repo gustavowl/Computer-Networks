@@ -72,10 +72,18 @@ if receivedMessage[0].decode() == "OK":
 		#for now the server will only process one request per TCP connection
 		conSocket, addr = serverSocket.accept()
 
+		#receives the size (in bytes) of list to be sent
+		size = int((conSocket.recvfrom(16))[0].decode())
+		conSocket.send("OK".encode())
+
 		#stores data sent from client and client's adress and port, respectively
-		receivedMessage = conSocket.recvfrom(CONST_BUFFER_SIZE)
+		receivedMessage = conSocket.recvfrom(size)
+		print("received message: " + str(receivedMessage[1]) + "\t" +
+			"length: " + str(len(receivedMessage[0].decode())))
 		receivedMessage = receivedMessage[0].decode()
-		print(len(receivedMessage))
+		while len(receivedMessage.encode()) < size:
+			receivedMessage += (conSocket.recvfrom(size))[0].decode()
+			print("\tiPrinted")
 		#print(receivedMessage)
 		#applies changes to received message
 		array = [int(num) for num in receivedMessage.split()]
