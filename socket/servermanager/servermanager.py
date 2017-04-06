@@ -3,6 +3,7 @@ import _thread
 
 CONST_MANAGE_REQUEST_PORT = 9000
 CONST_ADD_NEW_SERVERS_PORT = 9090
+CONST_BUFFER_SIZE = 100000
 
 debug = True
 
@@ -24,20 +25,18 @@ def debug(text):
 #with which the server is working, respectively
 def persistent_socket_connection(con_socket, server_address):
 	#reads message sent from client
-	receivedMessage = conSocket.recvfrom(2112)
+	receivedMessage = conSocket.recvfrom(CONST_BUFFER_SIZE)
 
 	#if receivedMessage[0] == "" then connection was closed
 	while receivedMessage[0].decode() != "":
 		debug(receivedMessage[0].decode())
 
 		#creates client socket to connect with desired server
-		#TODO: info about IP and port may be stored somewhere
-		#else, i.e. not static
 		client_socket = initialize_client_socket(server_address[0], server_address[1])
+
 		#TODO: treat exception: client_socket = None
-		message = "servermanager says hello"
-		client_socket.send(message.encode()) #server will process request
-		answerMessage = client_socket.recvfrom(2112) #waits for server answer
+		client_socket.send(receivedMessage[0]) #server will process request
+		answerMessage = client_socket.recvfrom(CONST_BUFFER_SIZE) #waits for server answer
 		answerMessage = answerMessage[0].decode();
 		debug("Message received from server: " +  answerMessage)
 
@@ -48,7 +47,7 @@ def persistent_socket_connection(con_socket, server_address):
 		#send processed request back to client
 		con_socket.send(answerMessage.encode())
 		#waits for new request or end of connection
-		receivedMessage = con_socket.recvfrom(2112)
+		receivedMessage = con_socket.recvfrom(CONST_BUFFER_SIZE)
 	#reference to 1994's World's cup final
 	#it means "It is over"
 	debug("-------------CABOU!!!")

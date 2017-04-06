@@ -1,7 +1,38 @@
 from socket import *
 
 CONST_ADD_NEW_SERVERS_PORT = 9090
+CONST_BUFFER_SIZE = 100000
 
+#------------------MERGE SORT IMPLEMENTATION---------------------------------------
+#Explanation of algorithm can be found at
+#github.com/gustavowl/Algorithms-Cormen/blob/master/Chapter02/merge_sort_recursive.py
+def merge(lst, start, end):
+	start = int(start)
+	end = int(end)
+	cp = lst[start:end]
+	middle = int((start + end) / 2)
+	index = start
+	while ( middle > start and end > middle ):
+		if ((cp[0]) < (cp[middle - start] )):
+			lst[index] = cp.pop(0)
+			middle -= 1
+		else:
+			lst[index] = cp.pop(middle - start)
+		index += 1
+		end -= 1
+	while (len(cp) > 0):
+		lst[index] = cp.pop(0)
+		index += 1
+
+def merge_sort(lst, start, end):
+	start = int(start)
+	end = int(end)
+	if end - start > 1:
+		merge_sort(lst, start, (start + end) / 2)
+		merge_sort(lst, (start + end) / 2, end)
+		merge(lst, start, end)
+
+#------------------------------------------------------------------------------------
 #socket will listen to port specified by user
 serverPort = int(input("Type port to listen: "))
 
@@ -41,10 +72,11 @@ if receivedMessage[0].decode() == "OK":
 		conSocket, addr = serverSocket.accept()
 
 		#stores data sent from client and client's adress and port, respectively
-		receivedMessage = conSocket.recvfrom(2112)
+		receivedMessage = conSocket.recvfrom(CONST_BUFFER_SIZE)
 		#applies changes to received message
-		answerMessage = receivedMessage[0].decode().upper()
-		conSocket.send(answerMessage.encode())
+		array = receivedMessage[0].decode().split()
+		merge_sort(array, 0, len(array))
+		conSocket.send(str(array).encode())
 
 #else abort
 print("ERROR: could not create new server. \n" +

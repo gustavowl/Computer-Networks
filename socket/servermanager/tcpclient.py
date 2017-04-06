@@ -1,6 +1,7 @@
 from socket import *
 
 CONST_MANAGE_REQUEST_PORT = 9000
+CONST_BUFFER_SIZE = 100000
 
 #this will read the server's IP address from a file
 #the file is not uploaded to github. Just create a file
@@ -22,20 +23,27 @@ message = input('Input lowercase sentence:')
 
 #application calls the socket and it will send data to the server
 #encode converts message to bytes type
-clntSocket.send(message.encode())
+with open("array.txt") as f:
+	content = f.readlines()
+content = [x.strip() for x in content]
 
-receivedMessage = clntSocket.recvfrom(2112)
+print(content)
+print("IRL " + str(len(str(content).encode())))
+
+clntSocket.send(str(content).encode())
+
+receivedMessage = clntSocket.recvfrom(CONST_BUFFER_SIZE)
 #receivedMessage will be received in bytes format. convert to string before printing
 print(receivedMessage[0].decode())
 message = "leeroy jenkins"
 print(message)
 clntSocket.send(message.encode())
 print("send")
-receivedMessage = clntSocket.recvfrom(2112)
+receivedMessage = clntSocket.recvfrom(CONST_BUFFER_SIZE)
 #receivedMessage will be received in bytes format. convert to string before printing
 print(receivedMessage[0].decode())
 
 message = input('Input another lowercase sentence:')
 clntSocket.send(message.encode())
-print((clntSocket.recvfrom(2112))[0].decode())
+print((clntSocket.recvfrom(CONST_BUFFER_SIZE))[0].decode())
 clntSocket.close()
